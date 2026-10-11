@@ -37,6 +37,9 @@ public class JournelEntryV2Controller {
         String userName = authentication.getName();
 
         User user = userService.findByUserName(userName);
+        if (user == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
         List<JournalEntry> all = user.getJournalEntries();
 
         if (all != null && !all.isEmpty()) {

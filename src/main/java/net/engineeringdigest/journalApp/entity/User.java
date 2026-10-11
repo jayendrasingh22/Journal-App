@@ -23,6 +23,9 @@ public class User {
     @Indexed(unique =true) //for making searching fast
     @NonNull
     private String userName;
+    private String email;
+    private Boolean sentimentAnalysis;
+
     @NonNull
     private String password;
 

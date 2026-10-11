@@ -3,6 +3,8 @@ package net.engineeringdigest.journalApp.controller;
 
 import net.engineeringdigest.journalApp.Repository.UserRepository;
 import net.engineeringdigest.journalApp.Service.UserService;
+import net.engineeringdigest.journalApp.Service.WeatherService;
+import net.engineeringdigest.journalApp.api_response.WeatherResponse;
 import net.engineeringdigest.journalApp.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WeatherService weatherService;
 
 
 //    @GetMapping ..........> will now be in admin ,coz admin can see all
@@ -47,6 +52,20 @@ public class UserController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         userRepository.deleteByUserName(authentication.getName());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    @GetMapping
+    public ResponseEntity<?> greeting() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        WeatherResponse weatherResponse = weatherService.getWeather("Mumbai");
+
+        String greeting = "";
+        if (weatherResponse != null
+                && weatherResponse.getCurrent() != null
+                && weatherResponse.getCurrent().getFeelslike() != null) {
+            greeting = ", Weather feels like " + weatherResponse.getCurrent().getFeelslike();
+        }
+
+        return new ResponseEntity<>("Hi " + authentication.getName() + greeting, HttpStatus.OK);
     }
 
 

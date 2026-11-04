@@ -1,144 +1,177 @@
-# Journal App – Secure Personal Journaling Backend
+# Journal App — Spring Boot Journaling Backend
 
-A Java-based journaling application built with Spring Boot, designed to provide secure journal management through REST APIs, authentication, authorization, and database persistence.
+A REST API backend for managing user accounts and personal journal entries. The application uses Spring Boot, MongoDB, Spring Security, and JWT authentication, with Redis-backed weather-response caching and a scheduled Kafka-based sentiment notification workflow.
 
-## Overview
+> **Security and scope note:** The current source code does not implement end-to-end encryption (E2EE). Journal entry fields are stored in MongoDB through the application data model. The repository name/description should not be interpreted as proof of E2EE.
 
-Journal App is a backend application that allows users to manage personal journal entries through RESTful APIs. The project explores secure application development using Spring Security, JWT-based authentication, and MongoDB persistence.
+## Features verified in the source
 
-## Tech Stack
+### Implemented
+- User signup and login endpoints.
+- Stateless JWT authentication using a custom request filter.
+- Password hashing with BCrypt.
+- Role-based access control for admin endpoints.
+- User-scoped journal entry create, read, update, and delete operations.
+- MongoDB persistence for users and journal entries.
+- Redis caching for external weather responses, with a 300-second TTL.
+- Scheduled selection of users who opted into sentiment analysis and have a valid email address.
+- Weekly sentiment aggregation over journal entries from the preceding seven days.
+- Kafka producer/consumer flow that sends sentiment notification data to an email service.
+- Scheduled application-cache refresh.
 
-| Category | Technology |
+### Integrations present in code
+| Component | How it is used |
 |---|---|
-| Language | Java 17 |
-| Backend | Spring Boot 2.7.16, Spring Web |
-| Security | Spring Security, JWT |
-| Database | MongoDB |
-| Caching | Redis (integration status to verify) |
-| Messaging | Apache Kafka (integration status to verify) |
-| Email | Spring Mail (integration status to verify) |
-| Testing | JUnit, Spring Boot Test |
-| Build Tool | Maven |
-| Code Quality | SonarQube |
+| MongoDB | Persists users, journal entries, and application configuration |
+| Redis | Caches weather API responses |
+| Apache Kafka | Carries sentiment notification events |
+| Spring Mail | Sends sentiment notification emails |
+| External weather API | Supplies weather data for the authenticated user greeting |
+| SonarQube Maven plugin | Makes Maven-based code-quality analysis available |
+
+Dependencies or configuration alone are not proof of a production deployment. The integrations above are listed because corresponding application code is present; successful operation still depends on valid external service configuration.
+
+## Technology stack
+
+- **Language:** Java 17
+- **Framework:** Spring Boot 2.7.16, Spring Web
+- **Security:** Spring Security, JWT (JJWT), BCrypt
+- **Data:** Spring Data MongoDB
+- **Caching:** Spring Data Redis
+- **Messaging:** Spring Kafka
+- **Email:** Spring Boot Starter Mail
+- **Testing:** JUnit 5, Spring Boot Test
+- **Build:** Maven
+- **Code quality:** SonarQube Maven plugin
+- **Utilities:** Lombok, Jackson, RestTemplate
 
 ## Architecture
 
-The application follows a layered backend architecture.
+The application uses a layered Spring backend. The primary request path is:
 
-```mermaid
+~~~mermaid
 flowchart TD
-    A[Client / Postman] --> B[REST Controllers]
+    A[Client / Postman] --> B[JWT Filter]
     B --> C[Spring Security]
-    C --> D[Service Layer]
-    D --> E[Repository Layer]
-    E --> F[(MongoDB)]
-    C --> G[JWT Authentication]
-    D -.-> H[Redis - Verify]
-    D -.-> I[Kafka - Verify]
-    D -.-> J[Email Service - Verify]
-```
+    C --> D[REST Controllers]
+    D --> E[Service Layer]
+    E --> F[Repository Layer]
+    F --> G[(MongoDB)]
+    E --> H[Redis Service]
+    H --> I[(Redis Cache)]
+    E --> J[External Weather API]
+    K[Scheduled Sentiment Job] --> L[Kafka Topic: weekly_sentiments]
+    L --> M[Sentiment Consumer]
+    M --> N[Email Service]
+    N --> O[SMTP Provider]
+~~~
 
-## Features
+The scheduled sentiment workflow selects opted-in users, aggregates the most frequent non-null sentiment from entries in the previous seven days, publishes a message to the weekly_sentiments Kafka topic, and has a Kafka consumer pass the message to the email service.
 
-### Implemented
-- REST API-based backend.
-- User authentication and authorization.
-- Spring Security integration.
-- MongoDB-based persistence.
-- Journal entry management.
-- JUnit testing for core functionality.
+## API documentation
 
-### In Progress
-- Additional feature improvements and integration verification.
-- Expanded test coverage and security validation.
+See [API Documentation](docs/API.md) for the endpoint list, access requirements, and example request bodies.
 
-### Planned
-- Improved distributed request handling.
-- Enhanced monitoring and application observability.
-- Further security and performance improvements.
+### Main endpoint groups
 
-*Feature statuses should be updated after verifying the actual source code.*
+| Group | Base path | Purpose |
+|---|---|---|
+| Public | /public | Health check, signup, login |
+| Journal | /journal | Authenticated user's journal entries |
+| User | /user | Authenticated user's account operations and greeting |
+| Admin | /admin | Role-protected administrative operations |
 
-## Project Structure
+## Project structure
 
-```text
-Journal-App/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   └── resources/
-│   └── test/
-├── .mvn/
-├── mvnw
-├── mvnw.cmd
-├── pom.xml
-├── sonar-project.properties
-└── README.md
-```
+~~~text
+src/
+├── main/
+│   ├── java/net/engineeringdigest/journalApp/
+│   │   ├── cache/          # Application cache
+│   │   ├── config/         # Spring Security and Redis configuration
+│   │   ├── constants/      # Application constants
+│   │   ├── controller/     # REST controllers
+│   │   ├── entity/         # MongoDB entities
+│   │   ├── enums/          # Sentiment enum
+│   │   ├── filter/         # JWT request filter
+│   │   ├── model/          # Kafka message model
+│   │   ├── Repository/     # MongoDB repositories
+│   │   ├── schedular/      # Scheduled jobs
+│   │   ├── Service/        # Business and integration services
+│   │   └── utils/          # JWT utilities
+│   └── resources/
+└── test/
+    └── java/               # Unit and Spring Boot test classes
+~~~
 
-## Getting Started
+## Getting started
 
 ### Prerequisites
-- Java 17
-- Maven
-- MongoDB instance
-- Git
+- JDK 17
+- MongoDB
+- Redis
+- Apache Kafka (for the sentiment notification workflow)
+- SMTP credentials (for email notifications)
+- Weather API key (for the weather integration)
 
-### Clone Repository
+### Clone
 
-```bash
+~~~bash
 git clone https://github.com/jayendrasingh22/Journal-App.git
 cd Journal-App
-```
+~~~
 
-### Configuration
+### Configure services and secrets
 
-Configure database credentials and application secrets through environment variables or an external configuration file.
+Configure the MongoDB, Redis, Kafka, SMTP, and weather API settings for your local environment. The weather service reads the weather.api.key property.
 
-Never commit credentials or JWT secrets.
+**Do not commit credentials, API keys, or JWT signing secrets.** The current source contains a hardcoded JWT signing secret in JwtUtil; it must be moved to external configuration and rotated before this repository is used beyond local development.
 
-### Run Application
+### Run
 
 Windows:
 
-```bash
-mvnw.cmd spring-boot:run
-```
+~~~powershell
+.\mvnw.cmd spring-boot:run
+~~~
 
 Linux/macOS:
 
-```bash
+~~~bash
 ./mvnw spring-boot:run
-```
+~~~
 
-## API Documentation
+The application uses the Spring Boot default port unless overridden by configuration.
 
-API endpoints and request/response examples will be documented after verifying the controller implementations.
+## Tests and code quality
 
-## Testing
+Run the test suite:
 
-Run tests using:
+~~~bash
+./mvnw test
+~~~
 
-```bash
-mvnw.cmd test
-```
+On Windows, use mvnw.cmd test.
 
-## Code Quality
+The repository contains JUnit/Spring Boot test classes. Some test classes or methods are disabled, and the email test currently lacks the Spring Boot test-context annotation. Treat the existing tests as work in progress rather than evidence of comprehensive automated coverage.
 
-SonarQube Maven plugin is included for static code-quality analysis.
+The Maven build includes the SonarQube scanner plugin. Configure your SonarQube server and project properties before running an analysis.
 
-## Future Improvements
+## Known limitations and recommended next steps
 
-- Improve security and validation.
-- Expand automated testing.
-- Strengthen persistence and error handling.
-- Improve application observability.
+These are review findings and suggested improvements, not claims that the work is already complete:
+
+1. Remove the hardcoded JWT signing secret, rotate it, and load the replacement from environment-backed configuration.
+2. Remove the hardcoded admin response header in the JWT filter.
+3. Implement and test actual encryption before describing the project as E2EE.
+4. Fix and test journal update behavior; the current update controller assigns the content field twice.
+5. Add request validation and consistent error responses.
+6. Enable and expand automated tests, including authentication, authorization, journal ownership, Redis, and Kafka flows.
+7. Add API examples and an exported Postman collection.
 
 ## Author
 
 **Jayendra Singh**
 
-Java Backend Developer
-
-- GitHub: https://github.com/jayendrasingh22
-- Repository: https://github.com/jayendrasingh22/Journal-App
+- GitHub: [@jayendrasingh22](https://github.com/jayendrasingh22)
+- Repository: [Journal-App](https://github.com/jayendrasingh22/Journal-App)

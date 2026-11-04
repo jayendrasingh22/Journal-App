@@ -29,4 +29,4 @@ jobs:
         run: ./mvnw --batch-mode --no-transfer-progress verify
       - name: SonarCloud analysis
         if: env.SONAR_TOKEN != ''
-        run: ./mvnw --batch-mode org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar -Dsonar.token=${SONAR_TOKEN}
+        run: ./mvnw --batch-mode org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${SONAR_TOKEN}

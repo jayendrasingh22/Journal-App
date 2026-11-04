@@ -1,72 +1,65 @@
 package net.engineeringdigest.journalApp.controller;
 
-
 import net.engineeringdigest.journalApp.Repository.UserRepository;
 import net.engineeringdigest.journalApp.Service.UserService;
 import net.engineeringdigest.journalApp.Service.WeatherService;
 import net.engineeringdigest.journalApp.api_response.WeatherResponse;
+import net.engineeringdigest.journalApp.dto.ProfileUpdateRequest;
+import net.engineeringdigest.journalApp.dto.UserResponse;
 import net.engineeringdigest.journalApp.entity.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final UserRepository userRepository;
+    private final WeatherService weatherService;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private WeatherService weatherService;
-
-
-//    @GetMapping ..........> will now be in admin ,coz admin can see all
-//    public List<User> getAllUsers(){
-//     return   userService.getAll();
-//
-//    }
-
+    public UserController(UserService userService, UserRepository userRepository, WeatherService weatherService) {
+        this.userService = userService;
+        this.userRepository = userRepository;
+        this.weatherService = weatherService;
+    }
 
     @PutMapping
-    public ResponseEntity<?> updateUser(@RequestBody User user) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userName = authentication.getName();
-
-        User userInDb = userService.findByUserName(userName);
-        userInDb.setUserName(user.getUserName());
-        userInDb.setPassword(user.getPassword());
-        userService.saveNewUser(userInDb);
-
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<UserResponse> updateUser(@Valid @RequestBody ProfileUpdateRequest request) {
+        String currentUserName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userService.findByUserName(currentUserName);
+        if (user == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        User duplicate = userService.findByUserName(request.getUserName().trim());
+        if (duplicate != null && !duplicate.getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use");
+        }
+        user.setUserName(request.getUserName().trim());
+        if (request.getEmail() != null) user.setEmail(request.getEmail().trim().toLowerCase());
+        userRepository.save(user);
+        return ResponseEntity.ok(new UserResponse(user));
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteUserById() {
+    public ResponseEntity<Void> deleteUserById() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         userRepository.deleteByUserName(authentication.getName());
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
+
     @GetMapping
-    public ResponseEntity<?> greeting() {
+    public ResponseEntity<String> greeting() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         WeatherResponse weatherResponse = weatherService.getWeather("Mumbai");
-
         String greeting = "";
-        if (weatherResponse != null
-                && weatherResponse.getCurrent() != null
+        if (weatherResponse != null && weatherResponse.getCurrent() != null
                 && weatherResponse.getCurrent().getFeelslike() != null) {
             greeting = ", Weather feels like " + weatherResponse.getCurrent().getFeelslike();
         }
-
-        return new ResponseEntity<>("Hi " + authentication.getName() + greeting, HttpStatus.OK);
+        return ResponseEntity.ok("Hi " + authentication.getName() + greeting);
     }
-
-
 }

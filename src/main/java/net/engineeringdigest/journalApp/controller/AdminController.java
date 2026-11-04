@@ -35,7 +35,7 @@ public class AdminController {
 
     @PostMapping("/create-admin-user")
     public ResponseEntity<String> createUser(@Valid @RequestBody AdminCreateRequest request) {
-        if (userService.findByUserName(request.getUserName()) != null) {
+        if (userService.findByEmail(request.getEmail()) != null) {\n            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");\n        }\n        if (userService.findByUserName(request.getUserName()) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use");
         }
         User user = User.builder().userName(request.getUserName().trim())

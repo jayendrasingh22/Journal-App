@@ -39,7 +39,7 @@ public class PublicController {
     public String healthCheck() { return "OK"; }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequest request) {
+    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequest request) {\n        if (userService.findByEmail(request.getEmail().trim()) != null) {\n            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");\n        }
         User user = User.builder()
                 .userName(request.getUserName().trim())
                 .email(request.getEmail().trim().toLowerCase())

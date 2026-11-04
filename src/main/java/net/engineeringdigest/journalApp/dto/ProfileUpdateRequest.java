@@ -1,6 +1,7 @@
 package net.engineeringdigest.journalApp.dto;
 
-import javax.validation.constraints.NotBlank;\nimport javax.validation.constraints.Email;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 public class ProfileUpdateRequest {
@@ -13,4 +14,5 @@ public class ProfileUpdateRequest {
     public void setUserName(String userName) { this.userName = userName; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    }
 }

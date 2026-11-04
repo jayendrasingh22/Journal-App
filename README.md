@@ -17,9 +17,9 @@ A REST API for personal journal entries and account management. Built with Java 
 ### API and security improvements
 - DTO-based request and response contracts; client requests cannot assign account roles or MongoDB IDs.
 - Bean Validation for signup, login, profile, journal, and admin-create requests.
-- Centralized JSON error responses for validation and common API failures.
+- Centralized JSON error responses for validation, authentication, and authorization failures.
 - JWT signing secret loaded from environment configuration, not source code.
-- Google OAuth 2.0 login through Spring Security OAuth2 Client. The Google email must be verified and match an existing local account; no automatic account creation or silent linking.
+- Google OAuth 2.0 login through Spring Security OAuth2 Client. New verified Google identities can create accounts; an existing local account is never linked based on email alone.
 - Swagger/OpenAPI documentation with HTTP Bearer JWT support.
 - GitHub Actions Maven verification on pushes and pull requests; optional SonarCloud analysis.
 
@@ -114,8 +114,8 @@ Use Swagger's **Authorize** control with `Bearer <JWT>`.
 ## Authentication endpoints
 
 - `POST /public/signup` — accepts `userName`, `email`, and `password`; roles are assigned by the server.
-- `POST /public/login` — accepts `userName` and `password`; returns an `accessToken` response object.
-- `GET /oauth2/authorization/google` — starts Google OAuth. After success, the callback returns an application JWT as JSON for an existing local account with the same verified email.
+- `POST /public/login` — accepts `userName` and `password`; returns an object containing `accessToken`.
+- `GET /oauth2/authorization/google` — starts Google OAuth. A new verified Google identity creates a local USER account. Existing local accounts are not automatically linked by email.
 
 ## Tests and CI
 
@@ -132,7 +132,7 @@ A successful build does not prove that MongoDB, Redis, Kafka, SMTP, or Google OA
 ## Known scope limitations
 
 - E2EE is not implemented.
-- Google OAuth is account matching by verified email only; it does not automatically create accounts or link identities.
+- Existing local accounts cannot yet link a Google identity; the callback intentionally refuses automatic email-based linking. A separate authenticated linking flow remains future work.
 - Profile updates do not change passwords. Add a dedicated password-change flow with current-password verification before supporting password changes.
 - External service integration tests and production deployment hardening remain necessary.
 

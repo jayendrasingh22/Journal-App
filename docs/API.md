@@ -49,7 +49,7 @@ Successful response:
 
 ### Google OAuth 2.0
 
-Start at `GET /oauth2/authorization/google`. Google redirects to `/login/oauth2/code/google`. The success handler requires Google's verified email to match an existing local account and returns the application's JWT as JSON. See [SECURITY_AND_OAUTH.md](SECURITY_AND_OAUTH.md) for credentials and redirect URI setup.
+Start at `GET /oauth2/authorization/google`. Google redirects to `/login/oauth2/code/google`. Spring Security validates the OpenID Connect identity token, and the application requires a verified email. A new Google subject creates a local USER account; an existing local account with the same email is not automatically linked. See [SECURITY_AND_OAUTH.md](SECURITY_AND_OAUTH.md).
 
 ## Journal endpoints
 
@@ -145,7 +145,7 @@ Use the Swagger **Authorize** control with `Bearer <JWT>`.
 
 ## Error response format
 
-Validation and handled API errors use a consistent shape:
+Validation, authentication, and authorization failures use a consistent JSON shape:
 
 ~~~json
 {

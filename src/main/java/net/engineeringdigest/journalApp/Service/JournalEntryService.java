@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -36,7 +37,7 @@ try{
     System.out.println("USER FOUND: " + user);
     journalEntry.setDate(LocalDateTime.now());
     JournalEntry saved = journalEntryRepo.save(journalEntry);
-    user.getJournalEntries().add(saved);
+    if (user.getJournalEntries() == null) {\n        user.setJournalEntries(new ArrayList<>());\n    }\n    user.getJournalEntries().add(saved);
     userService.saveUser(user);
 } catch (Exception e) {
     System.out.println(e);

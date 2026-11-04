@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.Valid;
+import javax.validation.Valid;\nimport javax.validation.constraints.Email;
 
 @RestController
 @RequestMapping("/user")
@@ -39,7 +39,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use");
         }
         user.setUserName(request.getUserName().trim());
-        if (request.getEmail() != null) user.setEmail(request.getEmail().trim().toLowerCase());
+        if (request.getEmail() != null) {\n            User emailOwner = userService.findByEmail(request.getEmail().trim());\n            if (emailOwner != null && !emailOwner.getId().equals(user.getId())) {\n                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already in use");\n            }\n            user.setEmail(request.getEmail().trim().toLowerCase());\n        }
         userRepository.save(user);
         return ResponseEntity.ok(new UserResponse(user));
     }

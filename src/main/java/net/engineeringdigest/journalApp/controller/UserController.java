@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.Valid;\nimport javax.validation.constraints.Email;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/user")
@@ -34,12 +34,20 @@ public class UserController {
         String currentUserName = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByUserName(currentUserName);
         if (user == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+
         User duplicate = userService.findByUserName(request.getUserName().trim());
         if (duplicate != null && !duplicate.getId().equals(user.getId())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use");
         }
+
+        if (request.getEmail() != null) {
+            User emailOwner = userService.findByEmail(request.getEmail().trim());
+            if (emailOwner != null && !emailOwner.getId().equals(user.getId())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already in use");
+            }
+            user.setEmail(request.getEmail().trim().toLowerCase());
+        }
         user.setUserName(request.getUserName().trim());
-        if (request.getEmail() != null) {\n            User emailOwner = userService.findByEmail(request.getEmail().trim());\n            if (emailOwner != null && !emailOwner.getId().equals(user.getId())) {\n                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already in use");\n            }\n            user.setEmail(request.getEmail().trim().toLowerCase());\n        }
         userRepository.save(user);
         return ResponseEntity.ok(new UserResponse(user));
     }

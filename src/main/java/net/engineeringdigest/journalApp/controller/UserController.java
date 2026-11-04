@@ -40,7 +40,7 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use");
         }
 
-        if (request.getEmail() != null) {
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
             User emailOwner = userService.findByEmail(request.getEmail().trim());
             if (emailOwner != null && !emailOwner.getId().equals(user.getId())) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already in use");

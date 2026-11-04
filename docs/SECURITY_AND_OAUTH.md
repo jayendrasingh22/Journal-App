@@ -14,7 +14,7 @@ Rotating the key invalidates previously issued JWTs. Users must sign in again.
 
 ## Google OAuth 2.0
 
-Configure the following environment variables:
+Configure:
 
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
@@ -25,13 +25,17 @@ Register this authorized redirect URI in Google Cloud Console:
 http://localhost:8080/login/oauth2/code/google
 ```
 
-Start the authorization flow at:
+Start authorization at:
 
 ```
 http://localhost:8080/oauth2/authorization/google
 ```
 
-After Google authenticates the user, the application checks that Google reports a verified email and matches it to an existing local account. It does not silently create an account or link an arbitrary Google identity. The callback responds with JSON containing an application JWT; store and transmit that token securely. For a browser application, prefer a backend-for-frontend or secure, HttpOnly cookie design rather than placing tokens in URLs or browser storage.
+Spring Security's OpenID Connect integration validates the provider's ID token. The application additionally requires Google's `email_verified` claim and stores the stable Google `sub` identifier for subsequent sign-ins.
+
+**Account-linking safety:** If no local account uses the verified Google email, the application creates a new USER account associated with that Google subject. If a local account already uses the email, the callback refuses automatic linking. This prevents an unverified local email registration from being taken over by a Google login. A separate authenticated account-linking flow is not implemented yet.
+
+The callback responds with JSON containing an application JWT. Store and transmit that token securely. For a browser application, prefer a backend-for-frontend or secure, HttpOnly cookie design rather than placing tokens in URLs or browser storage.
 
 ## API documentation
 
@@ -42,4 +46,4 @@ Use the Authorize control with a JWT in the form `Bearer <token>`.
 
 ## Important
 
-The Google OAuth client registration uses placeholder values when environment variables are absent so that local development can start. Google sign-in will not work until real credentials and the matching redirect URI are configured. Never commit credentials or signing keys.
+The Google client registration uses placeholder values when environment variables are absent so the app can start locally. Google sign-in will not work until real credentials and the matching redirect URI are configured. Never commit credentials or signing keys.

@@ -46,8 +46,8 @@ public class PublicController {
                 .password(request.getPassword())
                 .sentimentAnalysis(Boolean.FALSE)
                 .roles(Collections.singletonList("USER"))
-                .JournalEntries(new ArrayList<>())
                 .build();
+        user.setJournalEntries(new ArrayList<>());
         if (!userService.saveNewUser(user)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Unable to create account. The username or email may already be registered.");

@@ -84,7 +84,7 @@ public class JournelEntryV2Controller {
     public ResponseEntity<JournalEntryResponse> updateJournalEntryById(
             @PathVariable ObjectId myId, @Valid @RequestBody JournalEntryRequest request) {
         User user = currentUser();
-        boolean belongsToUser = user.getJournalEntries().stream()
+        boolean belongsToUser = journalEntries(user).stream()
                 .anyMatch(entry -> myId.equals(entry.getId()));
         if (!belongsToUser) return ResponseEntity.notFound().build();
 

@@ -35,12 +35,12 @@ Dependencies or configuration alone are not proof of a production deployment. Th
 
 - **Language:** Java 17
 - **Framework:** Spring Boot 2.7.16, Spring Web
-- **Security:** Spring Security, JWT (JJWT), BCrypt
+- **Security:** Spring Security, JWT (JJWT), BCrypt, OAuth2 Client
 - **Data:** Spring Data MongoDB
 - **Caching:** Spring Data Redis
 - **Messaging:** Spring Kafka
 - **Email:** Spring Boot Starter Mail
-- **Testing:** JUnit 5, Spring Boot Test
+- **API documentation:** Springdoc OpenAPI / Swagger UI\n- **CI:** GitHub Actions (Maven verify; optional SonarCloud scan)\n- **Testing:** JUnit 5, Spring Boot Test
 - **Build:** Maven
 - **Code quality:** SonarQube Maven plugin
 - **Utilities:** Lombok, Jackson, RestTemplate
@@ -125,7 +125,7 @@ cd Journal-App
 
 Configure the MongoDB, Redis, Kafka, SMTP, and weather API settings for your local environment. The weather service reads the weather.api.key property.
 
-**Do not commit credentials, API keys, or JWT signing secrets.** The current source contains a hardcoded JWT signing secret in JwtUtil; it must be moved to external configuration and rotated before this repository is used beyond local development.
+**Do not commit credentials, API keys, or JWT signing secrets.** Set `JWT_SECRET` to a fresh random value of at least 32 characters before using signup/login. The previous hardcoded signing key must be considered compromised and rotated; existing tokens will no longer validate after rotation. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to enable Google sign-in. See [Security and OAuth setup](docs/SECURITY_AND_OAUTH.md).
 
 ### Run
 

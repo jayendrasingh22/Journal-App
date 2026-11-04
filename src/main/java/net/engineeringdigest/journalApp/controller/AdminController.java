@@ -29,19 +29,27 @@ public class AdminController {
 
     @GetMapping("/all-users")
     public ResponseEntity<List<UserResponse>> getAllUser() {
-        List<UserResponse> users = userService.getAll().stream().map(UserResponse::new).collect(Collectors.toList());
+        List<UserResponse> users = userService.getAll().stream()
+                .map(UserResponse::new).collect(Collectors.toList());
         return ResponseEntity.ok(users);
     }
 
     @PostMapping("/create-admin-user")
     public ResponseEntity<String> createUser(@Valid @RequestBody AdminCreateRequest request) {
-        if (userService.findByEmail(request.getEmail()) != null) {\n            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");\n        }\n        if (userService.findByUserName(request.getUserName()) != null) {
+        if (userService.findByEmail(request.getEmail()) != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already registered");
+        }
+        if (userService.findByUserName(request.getUserName()) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already in use");
         }
-        User user = User.builder().userName(request.getUserName().trim())
-                .email(request.getEmail().trim().toLowerCase()).password(request.getPassword())
-                .sentimentAnalysis(Boolean.FALSE).roles(Collections.singletonList("ADMIN"))
-                .JournalEntries(new ArrayList<>()).build();
+        User user = User.builder()
+                .userName(request.getUserName().trim())
+                .email(request.getEmail().trim().toLowerCase())
+                .password(request.getPassword())
+                .sentimentAnalysis(Boolean.FALSE)
+                .roles(Collections.singletonList("ADMIN"))
+                .build();
+        user.setJournalEntries(new ArrayList<>());
         userService.saveAdmin(user);
         return ResponseEntity.status(HttpStatus.CREATED).body("Admin account created");
     }

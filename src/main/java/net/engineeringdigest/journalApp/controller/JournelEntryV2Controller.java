@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -40,9 +41,13 @@ public class JournelEntryV2Controller {
         return user;
     }
 
+    private List<JournalEntry> journalEntries(User user) {
+        return user.getJournalEntries() == null ? Collections.emptyList() : user.getJournalEntries();
+    }
+
     @GetMapping
     public ResponseEntity<List<JournalEntryResponse>> getAllJournalEntriesOfUser() {
-        List<JournalEntryResponse> entries = currentUser().getJournalEntries().stream()
+        List<JournalEntryResponse> entries = journalEntries(currentUser()).stream()
                 .map(JournalEntryResponse::new).collect(Collectors.toList());
         return ResponseEntity.ok(entries);
     }
@@ -61,7 +66,7 @@ public class JournelEntryV2Controller {
     @GetMapping("/id/{myId}")
     public ResponseEntity<JournalEntryResponse> getJournalEntryById(@PathVariable ObjectId myId) {
         User user = currentUser();
-        boolean belongsToUser = user.getJournalEntries().stream()
+        boolean belongsToUser = journalEntries(user).stream()
                 .anyMatch(entry -> myId.equals(entry.getId()));
         if (!belongsToUser) return ResponseEntity.notFound().build();
         Optional<JournalEntry> entry = journalEntryService.findById(myId);

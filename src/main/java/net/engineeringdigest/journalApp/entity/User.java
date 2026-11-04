@@ -24,6 +24,7 @@ public class User {
     @NonNull
     private String userName;
     private String email;
+    private String googleSubject;
     private Boolean sentimentAnalysis;
 
     @NonNull

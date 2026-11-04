@@ -1,12 +1,12 @@
 package net.engineeringdigest.journalApp.dto;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;\nimport javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
 
 public class ProfileUpdateRequest {
     @NotBlank @Size(min = 3, max = 40)
     private String userName;
-    @Size(max = 254)
+    @Email @Size(max = 254)
     private String email;
 
     public String getUserName() { return userName; }

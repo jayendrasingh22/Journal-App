@@ -1,6 +1,5 @@
 package net.engineeringdigest.journalApp.controller;
 
-import lombok.extern.slf4j.Slf4j;
 import net.engineeringdigest.journalApp.Service.UserDetailServiceImpl;
 import net.engineeringdigest.journalApp.Service.UserService;
 import net.engineeringdigest.journalApp.dto.AuthResponse;
@@ -14,13 +13,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;\nimport java.util.ArrayList;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/public")
-@Slf4j
 public class PublicController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
@@ -39,12 +39,15 @@ public class PublicController {
     public String healthCheck() { return "OK"; }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request) {
-        User user = new User();
-        user.setUserName(request.getUserName().trim());
-        user.setEmail(request.getEmail().trim().toLowerCase());
-        user.setPassword(request.getPassword());
-        user.setSentimentAnalysis(Boolean.FALSE);
+    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequest request) {
+        User user = User.builder()
+                .userName(request.getUserName().trim())
+                .email(request.getEmail().trim().toLowerCase())
+                .password(request.getPassword())
+                .sentimentAnalysis(Boolean.FALSE)
+                .roles(Collections.singletonList("USER"))
+                .JournalEntries(new ArrayList<>())
+                .build();
         if (!userService.saveNewUser(user)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Unable to create account. The username or email may already be registered.");

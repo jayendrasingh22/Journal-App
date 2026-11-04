@@ -44,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
-            } catch (JwtException | IllegalArgumentException ex) {
+            } catch (JwtException | IllegalArgumentException | IllegalStateException ex) {
                 SecurityContextHolder.clearContext();
                 log.debug("Rejected invalid JWT");
             } catch (org.springframework.security.core.userdetails.UsernameNotFoundException ex) {

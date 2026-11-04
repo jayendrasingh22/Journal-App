@@ -3,6 +3,8 @@ package net.engineeringdigest.journalApp.config;
 import net.engineeringdigest.journalApp.Service.UserDetailServiceImpl;
 import net.engineeringdigest.journalApp.filter.JwtFilter;
 import net.engineeringdigest.journalApp.oauth.GoogleOAuthSuccessHandler;
+import net.engineeringdigest.journalApp.security.RestAccessDeniedHandler;
+import net.engineeringdigest.journalApp.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,12 +23,18 @@ public class SpringSecurity extends WebSecurityConfigurerAdapter {
     private final UserDetailServiceImpl userDetailService;
     private final JwtFilter jwtFilter;
     private final GoogleOAuthSuccessHandler googleOAuthSuccessHandler;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
     public SpringSecurity(UserDetailServiceImpl userDetailService, JwtFilter jwtFilter,
-                          GoogleOAuthSuccessHandler googleOAuthSuccessHandler) {
+                          GoogleOAuthSuccessHandler googleOAuthSuccessHandler,
+                          RestAuthenticationEntryPoint authenticationEntryPoint,
+                          RestAccessDeniedHandler accessDeniedHandler) {
         this.userDetailService = userDetailService;
         this.jwtFilter = jwtFilter;
         this.googleOAuthSuccessHandler = googleOAuthSuccessHandler;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Override
@@ -39,6 +47,10 @@ public class SpringSecurity extends WebSecurityConfigurerAdapter {
                 .anyRequest().permitAll()
                 .and()
                 .oauth2Login().successHandler(googleOAuthSuccessHandler)
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and().csrf().disable();

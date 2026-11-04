@@ -1,6 +1,6 @@
 package net.engineeringdigest.journalApp.exception;
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus;\nimport org.springframework.security.core.AuthenticationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
         return build(status, ex.getReason() == null ? status.getReasonPhrase() : ex.getReason(), request, null);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler(AuthenticationException.class)\n    public ResponseEntity<ApiError> authentication(AuthenticationException ex, HttpServletRequest request) {\n        return build(HttpStatus.UNAUTHORIZED, "Invalid username or password", request, null);\n    }\n\n    @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> badRequest(IllegalArgumentException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request, null);
     }
